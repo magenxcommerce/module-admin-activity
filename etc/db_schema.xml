@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MagenX. All rights reserved.
+ * SPDX-License-Identifier: MIT
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+
+    <!--
+        One row per admin action. Field-level changes hang off
+        magenx_admin_activity_detail; this table stays narrow so the grid's
+        filtered reads never touch the value payloads.
+    -->
+    <table name="magenx_admin_activity" resource="default" engine="innodb" comment="Admin Activity Log">
+        <column xsi:type="int" name="activity_id" unsigned="true" nullable="false" identity="true" comment="Activity ID"/>
+        <column xsi:type="int" name="user_id" unsigned="true" nullable="true" comment="Admin user ID"/>
+        <!--
+            Denormalised ON PURPOSE. The FK below is SET NULL, because deleting
+            an admin user must not delete the record of what they did - which is
+            precisely the moment an audit trail earns its keep. The username is
+            therefore stored as text so the row stays readable afterwards.
+        -->
+        <column xsi:type="varchar" name="username" nullable="true" length="64" comment="Admin username at the time of the action"/>
+        <column xsi:type="varchar" name="action_type" nullable="false" length="32" comment="add|edit|delete|view|print|mass_update|login|login_failed|logout|page_visit"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="16" default="success" comment="success|failure"/>
+        <column xsi:type="varchar" name="entity_type" nullable="true" length="255" comment="Model class of the affected entity"/>
+        <column xsi:type="varchar" name="entity_label" nullable="true" length="255" comment="Human label of the entity type"/>
+        <!--
+            varchar, not int: not every tracked entity keys on an integer, and a
+            composite or string id must survive the round trip intact.
+        -->
+        <column xsi:type="varchar" name="entity_id" nullable="true" length="64" comment="ID of the affected entity"/>
+        <column xsi:type="varchar" name="entity_name" nullable="true" length="255" comment="Name of the affected entity"/>
+        <column xsi:type="varchar" name="full_action_name" nullable="true" length="255" comment="route_controller_action"/>
+        <column xsi:type="varchar" name="request_url" nullable="true" length="2048" comment="Request URL"/>
+        <column xsi:type="varchar" name="ip_address" nullable="true" length="45" comment="Remote address, IPv6-wide"/>
+        <column xsi:type="varchar" name="user_agent" nullable="true" length="512" comment="User agent"/>
+        <column xsi:type="text" name="message" nullable="true" comment="Failure reason or action summary"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created at"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="activity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="MAGENX_ADMIN_ACTIVITY_USER_ID_ADMIN_USER_USER_ID"
+                    table="magenx_admin_activity" column="user_id"
+                    referenceTable="admin_user" referenceColumn="user_id" onDelete="SET NULL"/>
+        <!-- The retention cron's read path, and the grid's default sort. -->
+        <index referenceId="MAGENX_ADMIN_ACTIVITY_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+        <index referenceId="MAGENX_ADMIN_ACTIVITY_USER_ID" indexType="btree">
+            <column name="user_id"/>
+        </index>
+        <!-- "What did anyone delete last week" - the most common audit query. -->
+        <index referenceId="MAGENX_ADMIN_ACTIVITY_ACTION_TYPE_CREATED_AT" indexType="btree">
+            <column name="action_type"/>
+            <column name="created_at"/>
+        </index>
+        <!-- "Everything that ever happened to this product." -->
+        <index referenceId="MAGENX_ADMIN_ACTIVITY_ENTITY_TYPE_ENTITY_ID" indexType="btree">
+            <column name="entity_type"/>
+            <column name="entity_id"/>
+        </index>
+        <index referenceId="MAGENX_ADMIN_ACTIVITY_IP_ADDRESS" indexType="btree">
+            <column name="ip_address"/>
+        </index>
+    </table>
+
+    <!--
+        One row per changed field. The FK is CASCADE so the retention cron only
+        has to delete parents - MySQL removes the details, which is both fewer
+        statements and impossible to leave half-done.
+    -->
+    <table name="magenx_admin_activity_detail" resource="default" engine="innodb" comment="Admin Activity Field Change">
+        <column xsi:type="int" name="detail_id" unsigned="true" nullable="false" identity="true" comment="Detail ID"/>
+        <column xsi:type="int" name="activity_id" unsigned="true" nullable="false" comment="Activity ID"/>
+        <column xsi:type="varchar" name="field_name" nullable="false" length="255" comment="Changed field"/>
+        <!--
+            mediumtext, not text: values are truncated at 128 KB, which is above
+            text's 64 KB ceiling. A silently clipped value in an audit log is
+            worse than no value at all.
+        -->
+        <column xsi:type="mediumtext" name="old_value" nullable="true" comment="Value before the change"/>
+        <column xsi:type="mediumtext" name="new_value" nullable="true" comment="Value after the change"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="detail_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="MAGENX_ADMIN_ACTIVITY_DETAIL_ACTIVITY_ID_MAGENX_ADMIN_ACTIVITY_ACTIVITY_ID"
+                    table="magenx_admin_activity_detail" column="activity_id"
+                    referenceTable="magenx_admin_activity" referenceColumn="activity_id" onDelete="CASCADE"/>
+        <index referenceId="MAGENX_ADMIN_ACTIVITY_DETAIL_ACTIVITY_ID" indexType="btree">
+            <column name="activity_id"/>
+        </index>
+    </table>
+</schema>

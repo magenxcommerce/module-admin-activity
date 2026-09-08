@@ -1,0 +1,256 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MagenX. All rights reserved.
+ * SPDX-License-Identifier: MIT
+ *
+ * This file IS the extension point. Tracked entities, protected fields and the
+ * page-visit exclusions are all data here, so a project extends the module by
+ * adding <item> elements in its own di.xml rather than by subclassing anything.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Dedicated log file: a failure to record activity must be findable
+         without reading it out of the general system.log noise. -->
+    <virtualType name="MagenxAdminActivityLogHandler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/magenx_admin_activity.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="MagenxAdminActivityLogger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="debug" xsi:type="object">MagenxAdminActivityLogHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Magenx\AdminActivity\Model\Activity\Writer">
+        <arguments>
+            <argument name="logger" xsi:type="object">MagenxAdminActivityLogger</argument>
+            <!--
+                A "select all" mass action can carry every row in a grid. Past
+                this many entities the request is recorded as a single summary
+                row instead of one row per entity, so one click cannot turn into
+                a five-figure insert.
+            -->
+            <argument name="maxEntitiesPerRequest" xsi:type="number">200</argument>
+        </arguments>
+    </type>
+    <type name="Magenx\AdminActivity\Cron\CleanActivityLogs">
+        <arguments>
+            <argument name="logger" xsi:type="object">MagenxAdminActivityLogger</argument>
+        </arguments>
+    </type>
+
+    <!--
+        The tracked-entity map AND the model allowlist. A class absent from this
+        list is neither logged nor ever instantiated while rendering the log.
+        Adding an entity is one <item>; nothing else has to change.
+
+        name_field is optional - omit it and EntryBuilder falls back to the usual
+        name/title/sku/code/label/email candidates.
+    -->
+    <type name="Magenx\AdminActivity\Model\Activity\EntityRegistry">
+        <arguments>
+            <argument name="entities" xsi:type="array">
+                <item name="catalog_product" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Catalog\Model\Product</item>
+                    <item name="label" xsi:type="string">Product</item>
+                    <item name="name_field" xsi:type="string">name</item>
+                </item>
+                <item name="catalog_category" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Catalog\Model\Category</item>
+                    <item name="label" xsi:type="string">Category</item>
+                    <item name="name_field" xsi:type="string">name</item>
+                </item>
+                <item name="catalog_attribute" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Catalog\Model\ResourceModel\Eav\Attribute</item>
+                    <item name="label" xsi:type="string">Product Attribute</item>
+                    <item name="name_field" xsi:type="string">attribute_code</item>
+                </item>
+                <item name="cms_page" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Cms\Model\Page</item>
+                    <item name="label" xsi:type="string">CMS Page</item>
+                    <item name="name_field" xsi:type="string">title</item>
+                </item>
+                <item name="cms_block" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Cms\Model\Block</item>
+                    <item name="label" xsi:type="string">CMS Block</item>
+                    <item name="name_field" xsi:type="string">title</item>
+                </item>
+                <item name="customer" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Customer\Model\Customer</item>
+                    <item name="label" xsi:type="string">Customer</item>
+                    <item name="name_field" xsi:type="string">email</item>
+                </item>
+                <item name="customer_group" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Customer\Model\Group</item>
+                    <item name="label" xsi:type="string">Customer Group</item>
+                    <item name="name_field" xsi:type="string">customer_group_code</item>
+                </item>
+                <item name="sales_order" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Sales\Model\Order</item>
+                    <item name="label" xsi:type="string">Order</item>
+                    <item name="name_field" xsi:type="string">increment_id</item>
+                </item>
+                <item name="admin_user" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\User\Model\User</item>
+                    <item name="label" xsi:type="string">Admin User</item>
+                    <item name="name_field" xsi:type="string">username</item>
+                </item>
+                <item name="admin_role" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Authorization\Model\Role</item>
+                    <item name="label" xsi:type="string">Admin Role</item>
+                    <item name="name_field" xsi:type="string">role_name</item>
+                </item>
+                <item name="store" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Store\Model\Store</item>
+                    <item name="label" xsi:type="string">Store View</item>
+                    <item name="name_field" xsi:type="string">name</item>
+                </item>
+                <item name="store_group" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Store\Model\Group</item>
+                    <item name="label" xsi:type="string">Store</item>
+                    <item name="name_field" xsi:type="string">name</item>
+                </item>
+                <item name="website" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Store\Model\Website</item>
+                    <item name="label" xsi:type="string">Website</item>
+                    <item name="name_field" xsi:type="string">name</item>
+                </item>
+                <item name="sales_rule" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\SalesRule\Model\Rule</item>
+                    <item name="label" xsi:type="string">Cart Price Rule</item>
+                    <item name="name_field" xsi:type="string">name</item>
+                </item>
+                <item name="catalog_rule" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\CatalogRule\Model\Rule</item>
+                    <item name="label" xsi:type="string">Catalog Price Rule</item>
+                    <item name="name_field" xsi:type="string">name</item>
+                </item>
+                <item name="tax_rule" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Tax\Model\Calculation\Rule</item>
+                    <item name="label" xsi:type="string">Tax Rule</item>
+                    <item name="name_field" xsi:type="string">code</item>
+                </item>
+                <!--
+                    Every store configuration change, including the ones made by
+                    other modules' backend models: they all extend this class, and
+                    EntityRegistry resolves through parents.
+                -->
+                <item name="core_config" xsi:type="array">
+                    <item name="class" xsi:type="string">Magento\Framework\App\Config\Value</item>
+                    <item name="label" xsi:type="string">Configuration</item>
+                    <item name="name_field" xsi:type="string">path</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magenx\AdminActivity\Model\Activity\EntryBuilder">
+        <arguments>
+            <!--
+                Classes whose values are masked wholesale, because the sensitive
+                data sits in a column no field-name rule would flag. The
+                encrypted config backend stores a gateway key or SMTP password
+                as ciphertext in a column literally called `value`.
+            -->
+            <argument name="maskedClasses" xsi:type="array">
+                <item name="encrypted_config" xsi:type="string">Magento\Config\Model\Config\Backend\Encrypted</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magenx\AdminActivity\Model\Activity\FieldFilter">
+        <arguments>
+            <!-- Exact column names whose values are never stored. -->
+            <argument name="protectedFields" xsi:type="array">
+                <item name="password" xsi:type="string">password</item>
+                <item name="password_hash" xsi:type="string">password_hash</item>
+                <item name="password_confirmation" xsi:type="string">password_confirmation</item>
+                <item name="current_password" xsi:type="string">current_password</item>
+                <item name="rp_token" xsi:type="string">rp_token</item>
+                <item name="rp_token_created_at" xsi:type="string">rp_token_created_at</item>
+                <item name="api_key" xsi:type="string">api_key</item>
+                <item name="secret" xsi:type="string">secret</item>
+                <item name="private_key" xsi:type="string">private_key</item>
+                <item name="crypt_key" xsi:type="string">crypt_key</item>
+                <item name="cc_number" xsi:type="string">cc_number</item>
+                <item name="cc_number_enc" xsi:type="string">cc_number_enc</item>
+                <item name="cc_cid" xsi:type="string">cc_cid</item>
+                <item name="cc_exp_month" xsi:type="string">cc_exp_month</item>
+                <item name="cc_exp_year" xsi:type="string">cc_exp_year</item>
+                <item name="additional_information" xsi:type="string">additional_information</item>
+            </argument>
+            <!--
+                Substring matches, checked case-insensitively. Catches the long
+                tail no exact list can keep up with: braintree_token,
+                stripe_secret_key, oauth_access_token, vault_payment_token …
+            -->
+            <argument name="protectedPatterns" xsi:type="array">
+                <item name="pass" xsi:type="string">pass</item>
+                <item name="token" xsi:type="string">token</item>
+                <item name="secret" xsi:type="string">secret</item>
+                <item name="apikey" xsi:type="string">apikey</item>
+                <item name="api_key" xsi:type="string">api_key</item>
+                <item name="private_key" xsi:type="string">private_key</item>
+                <item name="credential" xsi:type="string">credential</item>
+                <item name="cc_" xsi:type="string">cc_</item>
+                <item name="credit" xsi:type="string">credit</item>
+                <item name="iban" xsi:type="string">iban</item>
+            </argument>
+            <!--
+                Dropped entirely. Churn that changes on every save and tells an
+                auditor nothing, plus the derived tree columns Magento rewrites
+                whenever a category moves.
+            -->
+            <argument name="skipFields" xsi:type="array">
+                <item name="updated_at" xsi:type="string">updated_at</item>
+                <item name="created_at" xsi:type="string">created_at</item>
+                <item name="children_count" xsi:type="string">children_count</item>
+                <item name="has_options" xsi:type="string">has_options</item>
+                <item name="required_options" xsi:type="string">required_options</item>
+                <item name="entity_type_id" xsi:type="string">entity_type_id</item>
+                <item name="row_id" xsi:type="string">row_id</item>
+                <item name="created_in" xsi:type="string">created_in</item>
+                <item name="updated_in" xsi:type="string">updated_in</item>
+                <item name="session_id" xsi:type="string">session_id</item>
+                <item name="logdate" xsi:type="string">logdate</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magenx\AdminActivity\Observer\FlushActivity">
+        <arguments>
+            <!--
+                Prefix matches against the full action name. Page-visit logging
+                only; entity changes on these routes are still recorded.
+            -->
+            <argument name="ignoredActions" xsi:type="array">
+                <!-- Grid AJAX: fires on every sort, filter and page of every grid. -->
+                <item name="mui" xsi:type="string">mui_</item>
+                <!-- The login screens; the login observers cover these properly. -->
+                <item name="auth" xsi:type="string">adminhtml_auth</item>
+                <!-- Reading the activity log is not itself activity worth logging. -->
+                <item name="self" xsi:type="string">magenx_admin_activity</item>
+                <item name="notification" xsi:type="string">adminhtml_notification</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Admin grid collection: a SearchResult over the activity table. -->
+    <virtualType name="MagenxAdminActivityGridCollection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">magenx_admin_activity</argument>
+            <argument name="resourceModel" xsi:type="string">Magenx\AdminActivity\Model\ResourceModel\Activity</argument>
+        </arguments>
+    </virtualType>
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="magenx_admin_activity_listing_data_source" xsi:type="string">MagenxAdminActivityGridCollection</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

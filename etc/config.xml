@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MagenX. All rights reserved.
+ * SPDX-License-Identifier: MIT
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <magenx_admin_activity>
+            <general>
+                <!-- ON by default: an audit log that has to be switched on
+                     records nothing about the period before someone thought to
+                     switch it on, which is usually the period in question. -->
+                <enabled>1</enabled>
+                <log_login>1</log_login>
+                <!-- OFF by default: one row per admin page view. -->
+                <log_page_visits>0</log_page_visits>
+                <cleanup_days>90</cleanup_days>
+                <cleanup_schedule>0 3 * * *</cleanup_schedule>
+            </general>
+        </magenx_admin_activity>
+    </default>
+</config>

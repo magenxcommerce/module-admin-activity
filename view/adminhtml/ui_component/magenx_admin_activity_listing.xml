@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">magenx_admin_activity_listing.magenx_admin_activity_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <spinner>magenx_admin_activity_columns</spinner>
+        <deps>
+            <dep>magenx_admin_activity_listing.magenx_admin_activity_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="magenx_admin_activity_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">activity_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Magenx_AdminActivity::activity</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider" name="magenx_admin_activity_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>activity_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <exportButton name="export_button"/>
+        <filters name="listing_filters"/>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="magenx_admin_activity_columns">
+        <settings>
+            <!-- Read-only log: inline editing would defeat the point. -->
+            <editorConfig>
+                <param name="enabled" xsi:type="boolean">false</param>
+            </editorConfig>
+        </settings>
+        <column name="activity_id" sortOrder="10">
+            <settings>
+                <filter>textRange</filter>
+                <dataType>number</dataType>
+                <label translate="true">ID</label>
+            </settings>
+        </column>
+        <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date" component="Magento_Ui/js/grid/columns/date" sortOrder="20">
+            <settings>
+                <filter>dateRange</filter>
+                <dataType>date</dataType>
+                <!-- Newest first: the question is nearly always "what just happened". -->
+                <sorting>desc</sorting>
+                <label translate="true">Time</label>
+            </settings>
+        </column>
+        <column name="username" sortOrder="30">
+            <settings>
+                <filter>text</filter>
+                <dataType>text</dataType>
+                <label translate="true">Admin</label>
+            </settings>
+        </column>
+        <column name="action_type" component="Magento_Ui/js/grid/columns/select" sortOrder="40">
+            <settings>
+                <options class="Magenx\AdminActivity\Model\Config\Source\ActionType"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Action</label>
+            </settings>
+        </column>
+        <column name="entity_type" component="Magento_Ui/js/grid/columns/select" sortOrder="50">
+            <settings>
+                <options class="Magenx\AdminActivity\Model\Config\Source\EntityType"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Entity</label>
+            </settings>
+        </column>
+        <column name="entity_name" sortOrder="60">
+            <settings>
+                <filter>text</filter>
+                <dataType>text</dataType>
+                <label translate="true">Entity Name</label>
+            </settings>
+        </column>
+        <column name="entity_id" sortOrder="70">
+            <settings>
+                <filter>text</filter>
+                <dataType>text</dataType>
+                <label translate="true">Entity ID</label>
+            </settings>
+        </column>
+        <column name="ip_address" sortOrder="80">
+            <settings>
+                <filter>text</filter>
+                <dataType>text</dataType>
+                <label translate="true">IP Address</label>
+            </settings>
+        </column>
+        <column name="status" component="Magento_Ui/js/grid/columns/select" sortOrder="90">
+            <settings>
+                <options class="Magenx\AdminActivity\Model\Config\Source\Status"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Status</label>
+            </settings>
+        </column>
+        <column name="full_action_name" sortOrder="100">
+            <settings>
+                <filter>text</filter>
+                <dataType>text</dataType>
+                <label translate="true">Controller Action</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+        <column name="user_agent" sortOrder="110">
+            <settings>
+                <filter>text</filter>
+                <dataType>text</dataType>
+                <label translate="true">User Agent</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Magenx\AdminActivity\Ui\Component\Listing\Column\ActivityActions" sortOrder="200">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="viewUrlPath" xsi:type="string">magenx_admin_activity/activity/view</item>
+                </item>
+            </argument>
+            <settings>
+                <indexField>activity_id</indexField>
+                <label translate="true">Action</label>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

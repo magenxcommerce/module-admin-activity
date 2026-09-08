@@ -1,0 +1,24 @@
+{
+    "name": "magenxcommerce/module-admin-activity",
+    "description": "Admin action audit log for Magento 2 — records admin add/edit/delete/view/print/mass-update operations with field-level before/after values, login and logout activity, and the IP address and user agent behind each action.",
+    "type": "magento2-module",
+    "license": "MIT",
+    "require": {
+        "php": "~8.3.0||~8.4.0||~8.5.0",
+        "magento/framework": "*",
+        "magento/module-backend": "*",
+        "magento/module-config": "*",
+        "magento/module-cron": "*",
+        "magento/module-store": "*",
+        "magento/module-ui": "*",
+        "magento/module-user": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Magenx\\AdminActivity\\": ""
+        }
+    }
+}

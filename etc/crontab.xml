@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <!-- Schedule is admin-retimable via <config_path>. -->
+        <job name="magenx_admin_activity_clean" instance="Magenx\AdminActivity\Cron\CleanActivityLogs" method="execute">
+            <config_path>magenx_admin_activity/general/cleanup_schedule</config_path>
+        </job>
+    </group>
+</config>
