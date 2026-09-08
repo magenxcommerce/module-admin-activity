@@ -7,24 +7,52 @@ declare(strict_types=1);
 
 namespace Magenx\AdminActivity\Model\Config\Source;
 
-use Magenx\AdminActivity\Model\Activity\ActionType as ActionTypeList;
+use Magenx\AdminActivity\Model\Activity\ActionType as ActionTypeValue;
 use Magento\Framework\Data\OptionSourceInterface;
 
 /**
- * Grid filter options for the action_type column.
+ * Action type labels: the grid filter's options, and the detail page's label
+ * lookup.
+ *
+ * The map lives here rather than beside the constants because this is an
+ * injectable service - a plugin can extend the labels, which a static accessor
+ * on the constant holder could not offer.
  */
 class ActionType implements OptionSourceInterface
 {
+    private const LABELS = [
+        ActionTypeValue::ADD => 'Add',
+        ActionTypeValue::EDIT => 'Edit',
+        ActionTypeValue::DELETE => 'Delete',
+        ActionTypeValue::VIEW => 'View',
+        ActionTypeValue::PRINT_ACTION => 'Print',
+        ActionTypeValue::MASS_UPDATE => 'Mass Update',
+        ActionTypeValue::LOGIN => 'Login',
+        ActionTypeValue::LOGIN_FAILED => 'Login Failed',
+        ActionTypeValue::LOGOUT => 'Logout',
+        ActionTypeValue::PAGE_VISIT => 'Page Visit',
+    ];
+
     /**
      * @return array<int, array{value: string, label: \Magento\Framework\Phrase}>
      */
     public function toOptionArray(): array
     {
         $options = [];
-        foreach (ActionTypeList::all() as $value => $label) {
+        foreach (self::LABELS as $value => $label) {
             $options[] = ['value' => $value, 'label' => __($label)];
         }
 
         return $options;
+    }
+
+    /**
+     * Falls back to the raw stored value: a row written by an older version of
+     * the module, or by a project that added its own action type, is still worth
+     * showing rather than rendering as a blank cell.
+     */
+    public function getLabel(string $actionType): string
+    {
+        return self::LABELS[$actionType] ?? $actionType;
     }
 }

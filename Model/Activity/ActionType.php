@@ -14,8 +14,13 @@ namespace Magenx\AdminActivity\Model\Activity;
  * written to and read back from a varchar column and is surfaced in a grid
  * filter, so it has to round-trip as a string without a backing-enum cast at
  * every boundary.
+ *
+ * Constants only, no methods. The value => label map lives in
+ * Model\Config\Source\ActionType, which is an injectable service - a static
+ * accessor here could not be intercepted by a plugin, and the Magento coding
+ * standard rejects both that and the `final` this class used to carry.
  */
-final class ActionType
+class ActionType
 {
     public const ADD = 'add';
     public const EDIT = 'edit';
@@ -30,23 +35,4 @@ final class ActionType
 
     public const STATUS_SUCCESS = 'success';
     public const STATUS_FAILURE = 'failure';
-
-    /**
-     * @return array<string, string> value => untranslated label
-     */
-    public static function all(): array
-    {
-        return [
-            self::ADD => 'Add',
-            self::EDIT => 'Edit',
-            self::DELETE => 'Delete',
-            self::VIEW => 'View',
-            self::PRINT_ACTION => 'Print',
-            self::MASS_UPDATE => 'Mass Update',
-            self::LOGIN => 'Login',
-            self::LOGIN_FAILED => 'Login Failed',
-            self::LOGOUT => 'Logout',
-            self::PAGE_VISIT => 'Page Visit',
-        ];
-    }
 }

@@ -8,22 +8,10 @@ declare(strict_types=1);
 namespace Magenx\AdminActivity\Test\Unit;
 
 use Magenx\AdminActivity\Model\Activity\EntityRegistry;
+use Magenx\AdminActivity\Test\Unit\Stub\TrackedEntity;
+use Magenx\AdminActivity\Test\Unit\Stub\TrackedEntityChild;
+use Magenx\AdminActivity\Test\Unit\Stub\UntrackedEntity;
 use PHPUnit\Framework\TestCase;
-
-/** Stand-in for a tracked model. */
-class RegistryStubEntity
-{
-}
-
-/** Stand-in for the generated interceptor Magento actually hands an observer. */
-class RegistryStubEntityChild extends RegistryStubEntity
-{
-}
-
-/** Stand-in for a model nobody configured. */
-class RegistryStubStranger
-{
-}
 
 class EntityRegistryTest extends TestCase
 {
@@ -33,7 +21,7 @@ class EntityRegistryTest extends TestCase
     {
         $this->registry = new EntityRegistry([
             'stub' => [
-                'class' => RegistryStubEntity::class,
+                'class' => TrackedEntity::class,
                 'label' => 'Stub',
                 'name_field' => 'title',
             ],
@@ -42,7 +30,7 @@ class EntityRegistryTest extends TestCase
 
     public function testConfiguredClassResolves(): void
     {
-        $entity = $this->registry->resolve(RegistryStubEntity::class);
+        $entity = $this->registry->resolve(TrackedEntity::class);
 
         self::assertNotNull($entity);
         self::assertSame('Stub', $entity['label']);
@@ -53,25 +41,25 @@ class EntityRegistryTest extends TestCase
     {
         // What reaches an observer is almost never the configured class but a
         // generated ...\Interceptor subclass of it.
-        self::assertNotNull($this->registry->resolveObject(new RegistryStubEntityChild()));
-        self::assertTrue($this->registry->isTracked(new RegistryStubEntityChild()));
+        self::assertNotNull($this->registry->resolveObject(new TrackedEntityChild()));
+        self::assertTrue($this->registry->isTracked(new TrackedEntityChild()));
     }
 
     public function testUnknownClassIsNotTracked(): void
     {
-        self::assertNull($this->registry->resolve(RegistryStubStranger::class));
-        self::assertFalse($this->registry->isTracked(new RegistryStubStranger()));
+        self::assertNull($this->registry->resolve(UntrackedEntity::class));
+        self::assertFalse($this->registry->isTracked(new UntrackedEntity()));
     }
 
     public function testLeadingSlashesAndCaseDoNotDefeatTheLookup(): void
     {
-        self::assertNotNull($this->registry->resolve('\\' . RegistryStubEntity::class));
-        self::assertNotNull($this->registry->resolve(strtolower(RegistryStubEntity::class)));
+        self::assertNotNull($this->registry->resolve('\\' . TrackedEntity::class));
+        self::assertNotNull($this->registry->resolve(strtolower(TrackedEntity::class)));
     }
 
     public function testAllowlistAcceptsOnlyTheExactConfiguredClass(): void
     {
-        self::assertSame(RegistryStubEntity::class, $this->registry->getAllowedClass(RegistryStubEntity::class));
+        self::assertSame(TrackedEntity::class, $this->registry->getAllowedClass(TrackedEntity::class));
     }
 
     public function testAllowlistRejectsASubclass(): void
@@ -79,12 +67,12 @@ class EntityRegistryTest extends TestCase
         // Deliberately stricter than resolve(): entity_type is a class name read
         // back out of a database column, and instantiating whatever it happens
         // to name is exactly what this guards against.
-        self::assertNull($this->registry->getAllowedClass(RegistryStubEntityChild::class));
+        self::assertNull($this->registry->getAllowedClass(TrackedEntityChild::class));
     }
 
     public function testAllowlistRejectsAnUnlistedClass(): void
     {
-        self::assertNull($this->registry->getAllowedClass(RegistryStubStranger::class));
+        self::assertNull($this->registry->getAllowedClass(UntrackedEntity::class));
         self::assertNull($this->registry->getAllowedClass('Evil\\Payload'));
     }
 
@@ -97,6 +85,6 @@ class EntityRegistryTest extends TestCase
 
     public function testLabelsFeedTheGridFilter(): void
     {
-        self::assertSame([RegistryStubEntity::class => 'Stub'], $this->registry->getLabels());
+        self::assertSame([TrackedEntity::class => 'Stub'], $this->registry->getLabels());
     }
 }

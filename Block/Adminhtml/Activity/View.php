@@ -8,10 +8,10 @@ declare(strict_types=1);
 namespace Magenx\AdminActivity\Block\Adminhtml\Activity;
 
 use Magenx\AdminActivity\Model\Activity;
-use Magenx\AdminActivity\Model\Activity\ActionType;
 use Magenx\AdminActivity\Model\Activity\EntityRegistry;
 use Magenx\AdminActivity\Model\ActivityFactory;
 use Magenx\AdminActivity\Model\ResourceModel\Activity as ActivityResource;
+use Magenx\AdminActivity\Model\Config\Source\ActionType as ActionTypeLabels;
 use Magenx\AdminActivity\Model\ResourceModel\ActivityDetail\CollectionFactory as DetailCollectionFactory;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
@@ -32,6 +32,7 @@ class View extends Template
         private readonly ActivityResource $activityResource,
         private readonly DetailCollectionFactory $detailCollectionFactory,
         private readonly EntityRegistry $entityRegistry,
+        private readonly ActionTypeLabels $actionTypeLabels,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -101,9 +102,7 @@ class View extends Template
 
     public function getActionTypeLabel(): string
     {
-        $actionType = (string) $this->getActivity()->getData('action_type');
-
-        return (string) (ActionType::all()[$actionType] ?? $actionType);
+        return $this->actionTypeLabels->getLabel((string) $this->getActivity()->getData('action_type'));
     }
 
     public function getBackUrl(): string

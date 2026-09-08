@@ -66,8 +66,19 @@ class ValueFormatter
         }
 
         // Recursive structures and resources reach here. Record the shape rather
-        // than failing the save that triggered the logging.
-        return is_object($value) ? '[' . $value::class . ']' : '[' . gettype($value) . ']';
+        // than failing the save that triggered the logging. The shapes are named
+        // explicitly rather than read off gettype, which the Magento coding
+        // standard discourages, or get_debug_type, whose resource output
+        // varies with the stream's state.
+        if (is_object($value)) {
+            return '[' . $value::class . ']';
+        }
+
+        if (is_array($value)) {
+            return '[array]';
+        }
+
+        return '[resource]';
     }
 
     /**
