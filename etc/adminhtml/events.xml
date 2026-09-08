@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MagenX. All rights reserved.
+ * SPDX-License-Identifier: MIT
+ *
+ * NOTE 1: every observer here is deliberately in the ADMINHTML events.xml and
+ * not in a global etc/events.xml. The model events fire for every model in every
+ * area - a storefront checkout writes dozens of them per request - and
+ * area-scoped registration is what keeps that traffic out of the admin activity
+ * log without an App\State lookup inside the observer.
+ *
+ * NOTE 2: the COMMIT variants, not model_save_after / model_delete_after. The
+ * plain events fire inside the still-open transaction, so a save that is rolled
+ * back afterwards would leave a log entry claiming a change that never landed.
+ * The commit callbacks run only after a successful commit, and they are
+ * registered by both AbstractDb::save() and the EAV AbstractEntity::save(), so
+ * products and customers are covered as well as flat-table models.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+
+    <event name="model_save_commit_after">
+        <observer name="magenx_admin_activity_log_model_save" instance="Magenx\AdminActivity\Observer\LogModelSave"/>
+    </event>
+    <event name="model_delete_commit_after">
+        <observer name="magenx_admin_activity_log_model_delete" instance="Magenx\AdminActivity\Observer\LogModelDelete"/>
+    </event>
+
+    <!-- Writes everything the request buffered, exactly once. -->
+    <event name="controller_action_postdispatch">
+        <observer name="magenx_admin_activity_flush" instance="Magenx\AdminActivity\Observer\FlushActivity"/>
+    </event>
+
+    <event name="backend_auth_user_login_success">
+        <observer name="magenx_admin_activity_login_success" instance="Magenx\AdminActivity\Observer\LogLoginSuccess"/>
+    </event>
+    <event name="backend_auth_user_login_failed">
+        <observer name="magenx_admin_activity_login_failure" instance="Magenx\AdminActivity\Observer\LogLoginFailure"/>
+    </event>
+
+    <!-- PRE-dispatch: by postdispatch the session, and the user's name with it, is gone. -->
+    <event name="controller_action_predispatch_adminhtml_auth_logout">
+        <observer name="magenx_admin_activity_logout" instance="Magenx\AdminActivity\Observer\LogLogout"/>
+    </event>
+</config>

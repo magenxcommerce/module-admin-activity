@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MagenX. All rights reserved.
+ * SPDX-License-Identifier: MIT
+ *
+ * NOTE: `parent` values are NOT validated by menu.xsd. An id that does not exist
+ * makes Magento\Backend\Model\Menu\Builder throw OutOfRangeException from
+ * getStartupPageUrl(), which 500s EVERY admin page - not just this menu. The
+ * parent below (Magento_Backend::system) was cross-checked against the core
+ * <add id=…> set at 2.4.8.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Magenx_AdminActivity::activity" title="Admin Activity Log" module="Magenx_AdminActivity" sortOrder="95"
+             parent="Magento_Backend::system" action="magenx_admin_activity/activity/index"
+             resource="Magenx_AdminActivity::activity"/>
+    </menu>
+</config>

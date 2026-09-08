@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MagenX. All rights reserved.
+ * SPDX-License-Identifier: MIT
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="magenx" translate="label" sortOrder="400">
+            <label>Magenx</label>
+        </tab>
+        <!--
+            showInDefault only, on every field. The admin panel is not a store
+            view, so a per-website audit setting would be a control that looks
+            like it does something and does not.
+        -->
+        <section id="magenx_admin_activity" translate="label" type="text" sortOrder="420" showInDefault="1">
+            <class>separator-top</class>
+            <label>Admin Activity</label>
+            <tab>magenx</tab>
+            <resource>Magenx_AdminActivity::config</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1">
+                <label>General</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1">
+                    <label>Enable Admin Activity Logs</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Master switch. Off means nothing is recorded; existing records are kept.</comment>
+                </field>
+                <field id="log_login" translate="label comment" type="select" sortOrder="20" showInDefault="1">
+                    <label>Record Login Activity</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Successful logins, failed attempts and logouts, each with the IP address behind them.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="log_page_visits" translate="label comment" type="select" sortOrder="30" showInDefault="1">
+                    <label>Record Page Visits</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Off by default. Enable only if you need admin navigation history: it writes <b>one row per admin page view</b>, which on a busy install is by far the largest source of rows in the log.]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="cleanup_days" translate="label comment" type="text" sortOrder="40" showInDefault="1">
+                    <label>Clear Admin Activity Logs After (days)</label>
+                    <validate>validate-digits validate-zero-or-greater</validate>
+                    <comment>Records older than this are deleted by cron. 0 keeps everything forever.</comment>
+                </field>
+                <field id="cleanup_schedule" translate="label comment" type="text" sortOrder="50" showInDefault="1">
+                    <label>Cleanup Schedule</label>
+                    <backend_model>Magenx\AdminActivity\Model\Config\Backend\CronSchedule</backend_model>
+                    <comment>Cron expression for the cleanup job, e.g. 0 3 * * * for 3am daily.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

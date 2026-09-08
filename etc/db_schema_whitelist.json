@@ -1,0 +1,48 @@
+{
+    "magenx_admin_activity": {
+        "column": {
+            "activity_id": true,
+            "user_id": true,
+            "username": true,
+            "action_type": true,
+            "status": true,
+            "entity_type": true,
+            "entity_label": true,
+            "entity_id": true,
+            "entity_name": true,
+            "full_action_name": true,
+            "request_url": true,
+            "ip_address": true,
+            "user_agent": true,
+            "message": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "MAGENX_ADMIN_ACTIVITY_USER_ID_ADMIN_USER_USER_ID": true
+        },
+        "index": {
+            "MAGENX_ADMIN_ACTIVITY_CREATED_AT": true,
+            "MAGENX_ADMIN_ACTIVITY_USER_ID": true,
+            "MAGENX_ADMIN_ACTIVITY_ACTION_TYPE_CREATED_AT": true,
+            "MAGENX_ADMIN_ACTIVITY_ENTITY_TYPE_ENTITY_ID": true,
+            "MAGENX_ADMIN_ACTIVITY_IP_ADDRESS": true
+        }
+    },
+    "magenx_admin_activity_detail": {
+        "column": {
+            "detail_id": true,
+            "activity_id": true,
+            "field_name": true,
+            "old_value": true,
+            "new_value": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "MAGENX_ADMIN_ACTIVITY_DETAIL_ACTIVITY_ID_MAGENX_ADMIN_ACTIVITY_ACTIVITY_ID": true
+        },
+        "index": {
+            "MAGENX_ADMIN_ACTIVITY_DETAIL_ACTIVITY_ID": true
+        }
+    }
+}
