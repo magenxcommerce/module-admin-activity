@@ -19,7 +19,8 @@ class ContextProvider
     public function __construct(
         private readonly Http $request,
         private readonly RemoteAddress $remoteAddress,
-        private readonly Session $authSession
+        private readonly Session $authSession,
+        private readonly FieldFilter $fieldFilter
     ) {
     }
 
@@ -54,15 +55,54 @@ class ContextProvider
     }
 
     /**
-     * Strips the admin secret key out of the stored URL.
+     * Strips the credentials out of the stored URL.
      *
      * Every admin URL carries /key/<hash>/, which is a per-session CSRF token.
      * Persisting it would put a live token in a table that a reporting user or
      * a database export can read, for no gain - the route is already recorded
      * in full_action_name.
+     *
+     * The query string gets the same treatment through FieldFilter, the same
+     * rules the field-level masking uses: a route that takes ?token=… or a
+     * third-party screen that takes ?api_key=… would otherwise persist that
+     * value verbatim, and the grid exports request_url to CSV.
      */
     private function sanitizeUrl(string $url): string
     {
-        return (string) preg_replace('#/key/[^/]+/?#i', '/', $url);
+        $url = (string) preg_replace('#/key/[^/]+/?#i', '/', $url);
+
+        $separator = strpos($url, '?');
+        if ($separator === false) {
+            return $url;
+        }
+
+        $query = substr($url, $separator + 1);
+        if ($query === '') {
+            return $url;
+        }
+
+        $masked = false;
+        $pairs = explode('&', $query);
+
+        foreach ($pairs as $index => $pair) {
+            $delimiter = strpos($pair, '=');
+            if ($delimiter === false) {
+                continue;
+            }
+
+            $name = substr($pair, 0, $delimiter);
+            if (!$this->fieldFilter->isProtected(urldecode($name))) {
+                continue;
+            }
+
+            $pairs[$index] = $name . '=' . FieldFilter::MASK;
+            $masked = true;
+        }
+
+        if (!$masked) {
+            return $url;
+        }
+
+        return substr($url, 0, $separator + 1) . implode('&', $pairs);
     }
 }

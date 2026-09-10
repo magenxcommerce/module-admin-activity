@@ -20,34 +20,10 @@ namespace Magenx\AdminActivity\Model\Activity;
  */
 class Buffer
 {
-    /** @var array<string, mixed> */
-    private array $context = [];
-
     /** @var array<int, array<string, mixed>> */
     private array $entries = [];
 
     private bool $flushed = false;
-
-    /**
-     * @param array<string, mixed> $context
-     */
-    public function setContext(array $context): void
-    {
-        $this->context = $context;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getContext(): array
-    {
-        return $this->context;
-    }
-
-    public function hasContext(): bool
-    {
-        return $this->context !== [];
-    }
 
     /**
      * @param array<string, mixed> $entry
@@ -65,11 +41,11 @@ class Buffer
         return $this->entries;
     }
 
-    public function isEmpty(): bool
-    {
-        return $this->entries === [];
-    }
-
+    /**
+     * Clearing the entries is what stops a double write; the flag records only
+     * that this request has already produced a row, which is what suppresses
+     * the page-visit fallback for the rest of it.
+     */
     public function markFlushed(): void
     {
         $this->flushed = true;

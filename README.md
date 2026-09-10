@@ -104,9 +104,20 @@ rather than the field level, because its sensitive data sits in a column called
 `value` that no field-name rule would flag — that column holds the ciphertext of
 a payment gateway key or an SMTP password.
 
+**Config paths.** The same protection covers the config backends that are *not*
+`Encrypted`. Every store-config save arrives as a
+`Magento\Framework\App\Config\Value` whose secret, if it has one, sits in that
+same `value` column — and plenty of third-party modules store an SMTP password
+or a webhook secret under a plain `Value` backend with no encryption at all. The
+config **path** (`payment/acme/api_key`) is matched against the same
+`protectedPatterns`, so those values are masked on the way in.
+
 **Admin secret key.** The `/key/<hash>/` segment is stripped from the stored URL.
 It is a live per-session CSRF token and has no business in a table that a
-reporting user or a database export can read.
+reporting user or a database export can read. The query string is filtered
+through the same rules, so a route taking `?token=…` or `?api_key=…` stores
+`***` rather than the value — `request_url` is one of the columns the grid
+exports to CSV.
 
 **Failed logins.** The attempted username is stored; nothing the attempt
 submitted is. Only Magento's own (deliberately generic) exception message is
@@ -142,6 +153,16 @@ multi-byte character. Hence `mediumtext` value columns — the ceiling is above
 **Indexes** cover the queries the grid and the cron actually run: `created_at`,
 `user_id`, (`action_type`, `created_at`), (`entity_type`, `entity_id`) and
 `ip_address`.
+
+**The IP filter is an exact match**, not a substring — a grid text filter is
+`LIKE '%…%'` by default, which no index can serve, and "everything from this
+address" is the query that index exists for. Type the whole address. Every other
+text column still filters on substrings.
+
+**Writes are one transaction.** A request's rows go in together or not at all, so
+a failure part-way through a mass action cannot leave some entities recorded and
+others silently missing. Detail rows are inserted in chunks, because a wide save
+of 128 KB values in a single statement can outgrow `max_allowed_packet`.
 
 **Cleanup is batched.** The cron deletes at most 5000 parent rows per statement
 and lets the `CASCADE` foreign key remove the detail rows, so an install where
@@ -198,6 +219,18 @@ bin/magento cache:flush
 ```bash
 vendor/bin/phpunit -c vendor/magenxcommerce/module-admin-activity/phpunit.xml.dist
 ```
+
+From a checkout of this repository, with no Magento install and no Composer
+install — the tested classes import nothing from `magento/framework`, and
+`Test/Unit/bootstrap.php` autoloads them directly:
+
+```bash
+curl -fsSLO https://phar.phpunit.de/phpunit-10.5.phar
+php phpunit-10.5.phar -c phpunit.xml.dist
+```
+
+CI runs the same suite on every pull request (the `tests` job in
+`.github/workflows/ci.yml`).
 
 The suite covers the classes that decide what gets logged and how values are
 rendered — where a mistake either loses an audit record or writes a secret into

@@ -187,6 +187,10 @@
                 Substring matches, checked case-insensitively. Catches the long
                 tail no exact list can keep up with: braintree_token,
                 stripe_secret_key, oauth_access_token, vault_payment_token …
+
+                Also matched against store-config PATHS - see EntryBuilder's
+                applyPathMask(), which is how a secret stored by a non-encrypted
+                config backend in a column called `value` gets caught.
             -->
             <argument name="protectedPatterns" xsi:type="array">
                 <item name="pass" xsi:type="string">pass</item>
@@ -196,6 +200,12 @@
                 <item name="api_key" xsi:type="string">api_key</item>
                 <item name="private_key" xsi:type="string">private_key</item>
                 <item name="credential" xsi:type="string">credential</item>
+                <item name="salt" xsi:type="string">salt</item>
+                <item name="signature" xsi:type="string">signature</item>
+                <item name="webhook" xsi:type="string">webhook</item>
+                <!-- _key, not a bare "key": catches license_key, access_key and
+                     encryption_key without masking key_id-style identifiers. -->
+                <item name="suffixed_key" xsi:type="string">_key</item>
                 <item name="cc_" xsi:type="string">cc_</item>
                 <item name="credit" xsi:type="string">credit</item>
                 <item name="iban" xsi:type="string">iban</item>

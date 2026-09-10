@@ -10,8 +10,10 @@
  * magento/framework, on purpose: the suite therefore runs against a bare PHPUnit
  * with a two-line autoloader and does not need a Magento installation.
  *
- * Note that magenxcommerce/workflows' php-module-ci.yml does not run PHPUnit,
- * so this is a local-and-pre-push check rather than a CI gate.
+ * magenxcommerce/workflows' php-module-ci.yml does not run PHPUnit, so the
+ * `tests` job in .github/workflows/ci.yml gates this suite itself - with the
+ * PHPUnit PHAR, since the magento/* requires resolve only from
+ * repo.magento.com and none of the tested classes need them.
  */
 -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

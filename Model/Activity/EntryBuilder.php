@@ -34,6 +34,7 @@ class EntryBuilder
         private readonly EntityRegistry $registry,
         private readonly DiffBuilder $diffBuilder,
         private readonly ActionTypeResolver $actionTypeResolver,
+        private readonly FieldFilter $fieldFilter,
         private readonly Http $request,
         array $maskedClasses = []
     ) {
@@ -103,7 +104,7 @@ class EntryBuilder
             'entity_label' => $entity['label'],
             'entity_id' => $idField !== null ? $object->getDataUsingMethod($idField) : $object->getId(),
             'entity_name' => $this->resolveName($object, $entity['name_field']),
-            'changes' => $this->applyClassMask($object, $changes),
+            'changes' => $this->applyPathMask($object, $this->applyClassMask($object, $changes)),
         ];
     }
 
@@ -121,18 +122,54 @@ class EntryBuilder
     private function applyClassMask(AbstractModel $object, array $changes): array
     {
         foreach ($this->maskedClasses as $class) {
-            if (!is_a($object, $class)) {
-                continue;
+            if (is_a($object, $class)) {
+                return $this->maskAll($changes);
             }
+        }
 
-            foreach ($changes as &$change) {
-                $change['old_value'] = $change['old_value'] === null ? null : FieldFilter::MASK;
-                $change['new_value'] = $change['new_value'] === null ? null : FieldFilter::MASK;
-            }
-            unset($change);
+        return $changes;
+    }
 
+    /**
+     * The other half of the same problem, for the config backends that are NOT
+     * Magento\Config\Model\Config\Backend\Encrypted.
+     *
+     * Every store-config save arrives as a Magento\Framework\App\Config\Value,
+     * whose data is a `path` and a `value`. The secret lives in the column
+     * called `value`, so no field-name rule flags it - but the PATH says
+     * exactly what it is, and third-party modules routinely store an SMTP
+     * password or a webhook secret under a plain Value backend with no
+     * encryption at all. Matching the path against the same protected patterns
+     * catches those before the plaintext reaches the detail table.
+     *
+     * @param array<int, array<string, ?string>> $changes
+     * @return array<int, array<string, ?string>>
+     */
+    private function applyPathMask(AbstractModel $object, array $changes): array
+    {
+        $path = $object->getDataUsingMethod('path');
+        if (!is_string($path) || $path === '' || !$this->fieldFilter->isProtected($path)) {
             return $changes;
         }
+
+        return $this->maskAll($changes);
+    }
+
+    /**
+     * A null stays null, for the same reason FieldFilter::mask() keeps it:
+     * "was empty, now set" is safe to record and is often the only useful thing
+     * about the change.
+     *
+     * @param array<int, array<string, ?string>> $changes
+     * @return array<int, array<string, ?string>>
+     */
+    private function maskAll(array $changes): array
+    {
+        foreach ($changes as &$change) {
+            $change['old_value'] = $change['old_value'] === null ? null : FieldFilter::MASK;
+            $change['new_value'] = $change['new_value'] === null ? null : FieldFilter::MASK;
+        }
+        unset($change);
 
         return $changes;
     }

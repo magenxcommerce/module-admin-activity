@@ -15,6 +15,7 @@ use Magenx\AdminActivity\Model\Config\Source\ActionType as ActionTypeLabels;
 use Magenx\AdminActivity\Model\ResourceModel\ActivityDetail\CollectionFactory as DetailCollectionFactory;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
+use Magento\Framework\Phrase;
 
 /**
  * Renders one activity record and its before/after table.
@@ -100,7 +101,7 @@ class View extends Template
         return (string) ($activity->getData('entity_label') ?: $entityType);
     }
 
-    public function getActionTypeLabel(): string
+    public function getActionTypeLabel(): Phrase
     {
         return $this->actionTypeLabels->getLabel((string) $this->getActivity()->getData('action_type'));
     }

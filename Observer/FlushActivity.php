@@ -52,12 +52,17 @@ class FlushActivity implements ObserverInterface
 
     public function execute(Observer $observer): void
     {
-        if (!$this->config->isEnabled() || $this->buffer->isFlushed()) {
+        if (!$this->config->isEnabled()) {
             return;
         }
 
+        // isFlushed() gates only the page-visit fallback. It must NOT gate the
+        // entries: a controller that calls _forward() dispatches twice, so
+        // postdispatch fires twice, and latching on the first one would drop
+        // every entity saved by the second action. markFlushed() clears the
+        // entries, and that empty list is what prevents a double write.
         $entries = $this->buffer->getEntries();
-        if ($entries === []) {
+        if ($entries === [] && !$this->buffer->isFlushed()) {
             $entries = $this->pageVisitEntries();
         }
 
