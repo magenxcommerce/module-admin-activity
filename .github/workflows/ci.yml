@@ -21,3 +21,32 @@ jobs:
     # required status checks in a way that a trigger-level filter would not.
     if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     uses: magenxcommerce/workflows/.github/workflows/php-module-ci.yml@main
+
+  tests:
+    # The shared workflow runs no PHPUnit, so the unit suite is gated here.
+    # It needs no Magento installation: the classes under test import nothing
+    # from magento/framework and Test/Unit/bootstrap.php autoloads them
+    # directly, so the magento/* requires are never installed.
+    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      # The PHAR, not composer install: the magento/* requires resolve only
+      # from repo.magento.com, which needs credentials this workflow has no
+      # business holding. The suite does not need them - Test/Unit/bootstrap.php
+      # autoloads the module directly and nothing under test imports the
+      # framework - so PHPUnit is all that has to be fetched.
+      - name: Fetch PHPUnit
+        run: |
+          curl -fsSL -o phpunit.phar https://phar.phpunit.de/phpunit-10.5.phar
+          chmod +x phpunit.phar
+
+      - name: Run unit tests
+        run: ./phpunit.phar -c phpunit.xml.dist
