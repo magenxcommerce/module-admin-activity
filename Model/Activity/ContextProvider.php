@@ -19,7 +19,8 @@ class ContextProvider
     public function __construct(
         private readonly Http $request,
         private readonly RemoteAddress $remoteAddress,
-        private readonly Session $authSession
+        private readonly Session $authSession,
+        private readonly FieldFilter $fieldFilter
     ) {
     }
 
@@ -54,15 +55,47 @@ class ContextProvider
     }
 
     /**
-     * Strips the admin secret key out of the stored URL.
+     * Strips the credentials out of the stored URL.
      *
      * Every admin URL carries /key/<hash>/, which is a per-session CSRF token.
      * Persisting it would put a live token in a table that a reporting user or
      * a database export can read, for no gain - the route is already recorded
      * in full_action_name.
+     *
+     * The query string gets the same treatment through FieldFilter, the same
+     * rules the field-level masking uses: a route that takes ?token=… or a
+     * third-party screen that takes ?api_key=… would otherwise persist that
+     * value verbatim, and the grid exports request_url to CSV.
      */
     private function sanitizeUrl(string $url): string
     {
-        return (string) preg_replace('#/key/[^/]+/?#i', '/', $url);
+        $url = (string) preg_replace('#/key/[^/]+/?#i', '/', $url);
+
+        $separator = strpos($url, '?');
+        if ($separator === false) {
+            return $url;
+        }
+
+        $path = substr($url, 0, $separator);
+        $query = substr($url, $separator + 1);
+        if ($query === '') {
+            return $path;
+        }
+
+        $params = [];
+        parse_str($query, $params);
+
+        $masked = false;
+        foreach ($params as $name => $value) {
+            if ($this->fieldFilter->isProtected((string) $name)) {
+                $params[$name] = FieldFilter::MASK;
+                $masked = true;
+            }
+        }
+
+        // Nothing to hide: return the URL untouched rather than round-tripping
+        // it through http_build_query, which would re-encode and reorder a
+        // string an auditor may want to compare against a server log.
+        return $masked ? $path . '?' . http_build_query($params) : $url;
     }
 }

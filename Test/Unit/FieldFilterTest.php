@@ -68,6 +68,30 @@ class FieldFilterTest extends TestCase
         self::assertNull($this->filter->mask('password', null));
     }
 
+    /**
+     * The same patterns are matched against store-config paths, which is how
+     * EntryBuilder catches a credential stored by a non-encrypted config
+     * backend in a column called `value`.
+     */
+    public function testConfigPathsAreMatchedByTheSamePatterns(): void
+    {
+        $filter = new FieldFilter([], ['api_key' => 'api_key', 'suffixed_key' => '_key', 'pass' => 'pass'], []);
+
+        self::assertTrue($filter->isProtected('payment/acme/api_key'));
+        self::assertTrue($filter->isProtected('system/smtp/password'));
+        self::assertTrue($filter->isProtected('carriers/acme/license_key'));
+        self::assertFalse($filter->isProtected('web/seo/use_rewrites'));
+    }
+
+    public function testSuffixedKeyPatternDoesNotSwallowIdentifiers(): void
+    {
+        $filter = new FieldFilter([], ['suffixed_key' => '_key'], []);
+
+        self::assertTrue($filter->isProtected('access_key'));
+        self::assertFalse($filter->isProtected('key_id'));
+        self::assertFalse($filter->isProtected('keyword'));
+    }
+
     public function testEmptyConfigurationProtectsNothing(): void
     {
         $filter = new FieldFilter();

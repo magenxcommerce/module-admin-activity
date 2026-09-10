@@ -21,18 +21,23 @@ namespace Magenx\AdminActivity\Model\Activity;
  * ***. Dropping it outright would hide the single most security-relevant fact
  * an audit log can carry - that someone changed a password or rotated an API
  * key - while storing the value would defeat the point of protecting it.
+ *
+ * The exact-name lists are held as hash maps rather than lists: isSkipped() and
+ * isProtected() run once per field per entity, which on a capped mass action is
+ * hundreds of fields times two hundred entities, and a linear in_array() over
+ * every configured name is the wrong shape for that.
  */
 class FieldFilter
 {
     public const MASK = '***';
 
-    /** @var array<int, string> */
+    /** @var array<string, true> */
     private array $protectedFields;
 
     /** @var array<int, string> */
     private array $protectedPatterns;
 
-    /** @var array<int, string> */
+    /** @var array<string, true> */
     private array $skipFields;
 
     /**
@@ -45,26 +50,31 @@ class FieldFilter
         array $protectedPatterns = [],
         array $skipFields = []
     ) {
-        $this->protectedFields = $this->normalize($protectedFields);
+        $this->protectedFields = array_fill_keys($this->normalize($protectedFields), true);
         $this->protectedPatterns = $this->normalize($protectedPatterns);
-        $this->skipFields = $this->normalize($skipFields);
+        $this->skipFields = array_fill_keys($this->normalize($skipFields), true);
     }
 
     public function isSkipped(string $field): bool
     {
-        return in_array(strtolower($field), $this->skipFields, true);
+        return isset($this->skipFields[strtolower($field)]);
     }
 
+    /**
+     * Also takes a store-config path (payment/foo/api_key): the pattern list is
+     * substring-matched, so a path names its own sensitivity even though the
+     * column holding the secret is called `value`. EntryBuilder relies on that.
+     */
     public function isProtected(string $field): bool
     {
         $field = strtolower($field);
 
-        if (in_array($field, $this->protectedFields, true)) {
+        if (isset($this->protectedFields[$field])) {
             return true;
         }
 
         foreach ($this->protectedPatterns as $pattern) {
-            if ($pattern !== '' && str_contains($field, $pattern)) {
+            if (str_contains($field, $pattern)) {
                 return true;
             }
         }
