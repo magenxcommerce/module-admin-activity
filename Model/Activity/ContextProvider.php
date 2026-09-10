@@ -76,26 +76,33 @@ class ContextProvider
             return $url;
         }
 
-        $path = substr($url, 0, $separator);
         $query = substr($url, $separator + 1);
         if ($query === '') {
-            return $path;
+            return $url;
         }
-
-        $params = [];
-        parse_str($query, $params);
 
         $masked = false;
-        foreach ($params as $name => $value) {
-            if ($this->fieldFilter->isProtected((string) $name)) {
-                $params[$name] = FieldFilter::MASK;
-                $masked = true;
+        $pairs = explode('&', $query);
+
+        foreach ($pairs as $index => $pair) {
+            $delimiter = strpos($pair, '=');
+            if ($delimiter === false) {
+                continue;
             }
+
+            $name = substr($pair, 0, $delimiter);
+            if (!$this->fieldFilter->isProtected(urldecode($name))) {
+                continue;
+            }
+
+            $pairs[$index] = $name . '=' . FieldFilter::MASK;
+            $masked = true;
         }
 
-        // Nothing to hide: return the URL untouched rather than round-tripping
-        // it through http_build_query, which would re-encode and reorder a
-        // string an auditor may want to compare against a server log.
-        return $masked ? $path . '?' . http_build_query($params) : $url;
+        if (!$masked) {
+            return $url;
+        }
+
+        return substr($url, 0, $separator + 1) . implode('&', $pairs);
     }
 }
