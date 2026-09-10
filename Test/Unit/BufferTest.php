@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
  * flush semantics are worth pinning down: getting them wrong loses audit
  * records silently, which is the one failure this module cannot have.
  */
-final class BufferTest extends TestCase
+class BufferTest extends TestCase
 {
     private Buffer $buffer;
 
