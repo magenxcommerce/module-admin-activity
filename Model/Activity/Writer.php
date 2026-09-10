@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magenx\AdminActivity\Model\Activity;
 
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -23,11 +24,23 @@ class Writer
     public const DETAIL_TABLE = 'magenx_admin_activity_detail';
 
     /**
+     * Detail rows per INSERT. Values run to 128 KB apiece
+     * (ValueFormatter::MAX_LENGTH), so a wide product save in one statement can
+     * outgrow max_allowed_packet - and that throw would lose every field of
+     * that entity, not just the oversized one.
+     */
+    private const DETAIL_CHUNK = 50;
+
+    /**
      * Column budgets. Values are clipped rather than left to MySQL, which in
      * strict mode rejects the row outright and in non-strict mode truncates
      * silently - neither of which an observer can do anything useful about.
      */
     private const LENGTHS = [
+        // message is `text`, and MySQL in strict mode rejects the whole row
+        // rather than truncating it - which would lose a failed-login record
+        // to nothing worse than a verbose third-party exception message.
+        'message' => 65535,
         'username' => 64,
         'action_type' => 32,
         'status' => 16,
@@ -65,10 +78,19 @@ class Writer
             $entries = [$this->summarize($entries)];
         }
 
+        $connection = null;
+
         try {
             $connection = $this->resource->getConnection();
             $table = $this->resource->getTableName(self::TABLE);
             $detailTable = $this->resource->getTableName(self::DETAIL_TABLE);
+
+            // All or nothing. Both callers run outside the admin's own
+            // transaction - the commit-after events and postdispatch alike - so
+            // this cannot interfere with the action being audited, and it stops
+            // a failure part-way through a mass action leaving some entities
+            // recorded and others not.
+            $connection->beginTransaction();
 
             foreach ($entries as $entry) {
                 $connection->insert($table, $this->buildRow($context, $entry));
@@ -90,11 +112,33 @@ class Writer
                     ];
                 }
 
-                // One statement for the whole entity, however many fields moved.
-                $connection->insertMultiple($detailTable, $detailRows);
+                foreach (array_chunk($detailRows, self::DETAIL_CHUNK) as $chunk) {
+                    $connection->insertMultiple($detailTable, $chunk);
+                }
             }
+
+            $connection->commit();
         } catch (\Throwable $e) {
+            $this->rollBack($connection);
             $this->logger->error('Could not record admin activity: ' . $e->getMessage(), ['exception' => $e]);
+        }
+    }
+
+    /**
+     * A rollback that throws would replace the original failure with a less
+     * useful one, and an audit log must never be the thing that breaks the
+     * request it is auditing.
+     */
+    private function rollBack(?AdapterInterface $connection): void
+    {
+        if ($connection === null) {
+            return;
+        }
+
+        try {
+            $connection->rollBack();
+        } catch (\Throwable $e) {
+            $this->logger->error('Could not roll back the admin activity write: ' . $e->getMessage());
         }
     }
 

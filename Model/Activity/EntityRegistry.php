@@ -32,6 +32,20 @@ class EntityRegistry
     private array $byClass = [];
 
     /**
+     * Memoised resolveObject() results, keyed by concrete class name - null
+     * included, since the overwhelming majority of models saved in the admin
+     * are untracked and resolve to null every time.
+     *
+     * model_save_commit_after fires for every model in every admin request, and
+     * the ancestor walk below calls class_parents() on each one. Class names do
+     * not change within a request, so the walk is worth doing exactly once per
+     * class.
+     *
+     * @var array<string, array{class: string, label: string, name_field: string, id_field: string}|null>
+     */
+    private array $resolvedByObjectClass = [];
+
+    /**
      * @param array<string, array<string, string>> $entities
      */
     public function __construct(array $entities = [])
@@ -81,7 +95,17 @@ class EntityRegistry
      */
     public function resolveObject(object $object): ?array
     {
-        return $this->resolve($object::class, array_values(class_parents($object) ?: []));
+        $class = $object::class;
+
+        // array_key_exists, not ??= : a cached null is the common case (most
+        // models saved in the admin are untracked) and ??= would treat it as a
+        // miss and redo the ancestor walk every single time.
+        if (!array_key_exists($class, $this->resolvedByObjectClass)) {
+            $this->resolvedByObjectClass[$class] =
+                $this->resolve($class, array_values(class_parents($object) ?: []));
+        }
+
+        return $this->resolvedByObjectClass[$class];
     }
 
     public function isTracked(object $object): bool
