@@ -20,6 +20,15 @@
         </settings>
         <aclResource>Magenx_AdminActivity::activity</aclResource>
         <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider" name="magenx_admin_activity_listing_data_source">
+            <!--
+                ip_address filters on equality, not the default LIKE '%…%'.
+                The column is indexed precisely so that "everything from this
+                address" is cheap, and a leading wildcard would scan the whole
+                log instead. Every other text column keeps substring matching.
+            -->
+            <argument name="addFilterStrategies" xsi:type="array">
+                <item name="ip_address" xsi:type="object">Magenx\AdminActivity\Ui\Component\Listing\Filter\ExactMatch</item>
+            </argument>
             <settings>
                 <requestFieldName>id</requestFieldName>
                 <primaryFieldName>activity_id</primaryFieldName>
@@ -96,11 +105,12 @@
                 <label translate="true">Entity ID</label>
             </settings>
         </column>
+        <!-- Exact match, not substring - see addFilterStrategies above. -->
         <column name="ip_address" sortOrder="80">
             <settings>
                 <filter>text</filter>
                 <dataType>text</dataType>
-                <label translate="true">IP Address</label>
+                <label translate="true">IP Address (exact)</label>
             </settings>
         </column>
         <column name="status" component="Magento_Ui/js/grid/columns/select" sortOrder="90">
