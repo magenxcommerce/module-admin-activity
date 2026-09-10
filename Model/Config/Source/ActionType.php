@@ -9,6 +9,7 @@ namespace Magenx\AdminActivity\Model\Config\Source;
 
 use Magenx\AdminActivity\Model\Activity\ActionType as ActionTypeValue;
 use Magento\Framework\Data\OptionSourceInterface;
+use Magento\Framework\Phrase;
 
 /**
  * Action type labels: the grid filter's options, and the detail page's label
@@ -50,9 +51,16 @@ class ActionType implements OptionSourceInterface
      * Falls back to the raw stored value: a row written by an older version of
      * the module, or by a project that added its own action type, is still worth
      * showing rather than rendering as a blank cell.
+     *
+     * Returns a Phrase rather than a string so the translation happens here,
+     * against a literal the i18n collector can actually see. Handing back an
+     * untranslated string for the template to wrap in __() is a
+     * translate-by-variable that bin/magento i18n:collect-phrases walks past.
      */
-    public function getLabel(string $actionType): string
+    public function getLabel(string $actionType): Phrase
     {
-        return self::LABELS[$actionType] ?? $actionType;
+        $label = self::LABELS[$actionType] ?? null;
+
+        return $label === null ? __($actionType) : __($label);
     }
 }
