@@ -33,7 +33,7 @@
         <column xsi:type="varchar" name="entity_id" nullable="true" length="64" comment="ID of the affected entity"/>
         <column xsi:type="varchar" name="entity_name" nullable="true" length="255" comment="Name of the affected entity"/>
         <column xsi:type="varchar" name="full_action_name" nullable="true" length="255" comment="route_controller_action"/>
-        <column xsi:type="varchar" name="request_url" nullable="true" length="2048" comment="Request URL"/>
+        <column xsi:type="text" name="request_url" nullable="true" comment="Request URL"/>
         <column xsi:type="varchar" name="ip_address" nullable="true" length="45" comment="Remote address, IPv6-wide"/>
         <column xsi:type="varchar" name="user_agent" nullable="true" length="512" comment="User agent"/>
         <column xsi:type="text" name="message" nullable="true" comment="Failure reason or action summary"/>
