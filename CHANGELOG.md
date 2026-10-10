@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/magenxcommerce/module-admin-activity/compare/v1.0.1...v1.0.2) (2026-10-10)
+
+
+### Bug Fixes
+
+* store request_url as text so the schema validates ([#5](https://github.com/magenxcommerce/module-admin-activity/issues/5)) ([4bc9f8e](https://github.com/magenxcommerce/module-admin-activity/commit/4bc9f8e8b8a886d7f305e5add5ae0554b3296c0e))
+
 ## [1.0.1](https://github.com/magenxcommerce/module-admin-activity/compare/v1.0.0...v1.0.1) (2026-09-10)
 
 
