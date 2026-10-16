@@ -15,7 +15,10 @@
             "ip_address": true,
             "user_agent": true,
             "message": true,
-            "created_at": true
+            "created_at": true,
+            "source": true,
+            "connector": true,
+            "role_name": true
         },
         "constraint": {
             "PRIMARY": true,
@@ -26,7 +29,8 @@
             "MAGENX_ADMIN_ACTIVITY_USER_ID": true,
             "MAGENX_ADMIN_ACTIVITY_ACTION_TYPE_CREATED_AT": true,
             "MAGENX_ADMIN_ACTIVITY_ENTITY_TYPE_ENTITY_ID": true,
-            "MAGENX_ADMIN_ACTIVITY_IP_ADDRESS": true
+            "MAGENX_ADMIN_ACTIVITY_IP_ADDRESS": true,
+            "MAGENX_ADMIN_ACTIVITY_SOURCE": true
         }
     },
     "magenx_admin_activity_detail": {

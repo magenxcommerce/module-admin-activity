@@ -41,6 +41,27 @@ class Buffer
         return $this->entries;
     }
 
+    public function count(): int
+    {
+        return count($this->entries);
+    }
+
+    /**
+     * Removes and returns the entries added since $offset, leaving earlier ones
+     * for the request's own flush. This is how an ExternalActorScope takes only
+     * what happened inside it.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function drainFrom(int $offset): array
+    {
+        $offset = max(0, $offset);
+        $drained = array_slice($this->entries, $offset);
+        $this->entries = array_slice($this->entries, 0, $offset);
+
+        return $drained;
+    }
+
     /**
      * Clearing the entries is what stops a double write; the flag records only
      * that this request has already produced a row, which is what suppresses

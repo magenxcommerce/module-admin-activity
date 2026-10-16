@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MagenX. All rights reserved.
+ * SPDX-License-Identifier: MIT
+ *
+ * Changes made through token-authenticated frontend controllers - the MCP
+ * server's /magenx-mcp/server is the one this exists for - on behalf of an
+ * integration or an OAuth-connected admin.
+ *
+ * Not a relaxation of NOTE 1 in etc/adminhtml/events.xml: LogExternalChange
+ * records nothing unless the caller opened an ExternalActorScope, so a
+ * storefront request costs one property read and never produces a row.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="model_save_commit_after">
+        <observer name="magenx_admin_activity_log_external_save" instance="Magenx\AdminActivity\Observer\LogExternalChange"/>
+    </event>
+    <event name="model_delete_commit_after">
+        <observer name="magenx_admin_activity_log_external_delete" instance="Magenx\AdminActivity\Observer\LogExternalChange"/>
+    </event>
+</config>

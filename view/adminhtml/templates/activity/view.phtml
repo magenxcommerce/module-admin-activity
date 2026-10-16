@@ -36,6 +36,18 @@ $changes = $block->getChanges();
                     <td><?= $escaper->escapeHtml($activity->getData('username') ?: __('n/a')) ?></td>
                 </tr>
                 <tr>
+                    <th><?= $escaper->escapeHtml(__('Source')) ?></th>
+                    <td><?= $escaper->escapeHtml($activity->getData('source') ?: 'admin') ?></td>
+                </tr>
+                <tr>
+                    <th><?= $escaper->escapeHtml(__('Connector')) ?></th>
+                    <td><?= $escaper->escapeHtml($activity->getData('connector') ?: __('n/a')) ?></td>
+                </tr>
+                <tr>
+                    <th><?= $escaper->escapeHtml(__('Role')) ?></th>
+                    <td><?= $escaper->escapeHtml($activity->getData('role_name') ?: __('n/a')) ?></td>
+                </tr>
+                <tr>
                     <th><?= $escaper->escapeHtml(__('Action')) ?></th>
                     <td><?= $escaper->escapeHtml($block->getActionTypeLabel()) ?></td>
                 </tr>

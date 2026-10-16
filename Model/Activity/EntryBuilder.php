@@ -36,6 +36,7 @@ class EntryBuilder
         private readonly ActionTypeResolver $actionTypeResolver,
         private readonly FieldFilter $fieldFilter,
         private readonly Http $request,
+        private readonly ExternalActorScope $externalActorScope,
         array $maskedClasses = []
     ) {
         $this->maskedClasses = array_values(array_filter(array_map('strval', $maskedClasses)));
@@ -176,6 +177,13 @@ class EntryBuilder
 
     private function resolveType(bool $isNew): string
     {
+        // Inside an external scope the request's route says nothing about the
+        // change - every MCP call is the same POST to the same controller - so
+        // the entity's own state decides between add and edit.
+        if ($this->externalActorScope->isActive()) {
+            return $isNew ? ActionType::ADD : ActionType::EDIT;
+        }
+
         return $this->actionTypeResolver->resolve(
             (string) $this->request->getFullActionName(),
             (string) $this->request->getMethod(),

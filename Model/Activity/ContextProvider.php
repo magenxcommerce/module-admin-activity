@@ -10,6 +10,7 @@ namespace Magenx\AdminActivity\Model\Activity;
 use Magento\Backend\Model\Auth\Session;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
+use Magento\User\Model\User;
 
 /**
  * Assembles the who/where half of a log row: admin user, IP, user agent, URL.
@@ -33,15 +34,18 @@ class ContextProvider
      */
     public function get(?int $userId = null, ?string $username = null): array
     {
+        $roleName = null;
         if ($userId === null && $username === null) {
             $user = $this->authSession->getUser();
             if ($user !== null) {
                 $userId = (int) $user->getId();
                 $username = (string) $user->getUserName();
+                $roleName = $this->roleName($user);
             }
         }
 
         return [
+            'role_name' => $roleName,
             'user_id' => $userId,
             'username' => $username,
             'full_action_name' => $this->request->getFullActionName(),
@@ -52,6 +56,24 @@ class ContextProvider
             'ip_address' => $this->remoteAddress->getRemoteAddress() ?: null,
             'user_agent' => $this->request->getHeader('User-Agent') ?: null,
         ];
+    }
+
+    /**
+     * The role the admin acted under, recorded because a role can be edited or
+     * reassigned later and the log should say what authorised the change then.
+     */
+    private function roleName(User $user): ?string
+    {
+        try {
+            $role = $user->getRole();
+            $name = $role !== null ? (string) $role->getRoleName() : '';
+        } catch (\Throwable) {
+            // The role is a convenience in the log; failing to read it must not
+            // cost the entry itself.
+            return null;
+        }
+
+        return $name !== '' ? $name : null;
     }
 
     /**

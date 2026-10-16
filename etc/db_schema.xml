@@ -37,6 +37,17 @@
         <column xsi:type="varchar" name="ip_address" nullable="true" length="45" comment="Remote address, IPv6-wide"/>
         <column xsi:type="varchar" name="user_agent" nullable="true" length="512" comment="User agent"/>
         <column xsi:type="text" name="message" nullable="true" comment="Failure reason or action summary"/>
+        <!--
+            Where the change came from. "admin" is the admin panel; any other
+            value names an external caller recorded through ExternalActorScope,
+            e.g. "mcp" for the AI MCP server. connector is the credential it
+            used (integration name or OAuth client), role_name the ACL role
+            that authorised it at the time - both text, for the same reason
+            username is.
+        -->
+        <column xsi:type="varchar" name="source" nullable="false" length="16" default="admin" comment="admin, or the external caller, e.g. mcp"/>
+        <column xsi:type="varchar" name="connector" nullable="true" length="255" comment="Integration or OAuth client behind an external change"/>
+        <column xsi:type="varchar" name="role_name" nullable="true" length="255" comment="ACL role at the time of the action"/>
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created at"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="activity_id"/>
@@ -50,6 +61,10 @@
         </index>
         <index referenceId="MAGENX_ADMIN_ACTIVITY_USER_ID" indexType="btree">
             <column name="user_id"/>
+        </index>
+        <!-- "What did the AI connectors change" -->
+        <index referenceId="MAGENX_ADMIN_ACTIVITY_SOURCE" indexType="btree">
+            <column name="source"/>
         </index>
         <!-- "What did anyone delete last week" - the most common audit query. -->
         <index referenceId="MAGENX_ADMIN_ACTIVITY_ACTION_TYPE_CREATED_AT" indexType="btree">
