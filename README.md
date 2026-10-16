@@ -17,7 +17,8 @@ share is otherwise a system where "who deleted that CMS block" has no answer.
 | **Entity changes** | add, edit, delete, print, view and mass update, per tracked entity |
 | **Field-level detail** | the old and new value of every field that actually moved |
 | **Login activity** | successful logins, failed attempts (with the username tried) and logouts |
-| **Request context** | IP address, user agent, admin username, controller action, URL |
+| **Request context** | IP address, user agent, admin username, admin role, controller action, URL |
+| **External changes** | changes made through the AI MCP server (or any caller using `ExternalActorScope`), with the connector and role behind them |
 | **Page visits** | one row per admin page view — **off by default**, see Performance |
 
 ## Admin
@@ -194,6 +195,37 @@ alongside flat-table models.
 | `backend_auth_user_login_success` | login |
 | `backend_auth_user_login_failed` | failed attempt |
 | `controller_action_predispatch_adminhtml_auth_logout` | logout — `Auth\Session::processLogout()` dispatches nothing and destroys the session, so by postdispatch there is no user left to name |
+
+### Changes from outside the admin panel
+
+An integration token or an OAuth connection changes the same entities an admin
+does, but through a frontend controller with no admin session, so the observers
+above never see it. A caller that acts on someone's behalf opens a scope instead:
+
+```php
+$actor = new ExternalActor(
+    $adminUserId,            // null for an integration
+    'alice',                 // or 'integration:Reporting'
+    'mcp',                   // stored in `source`
+    'Claude',                // stored in `connector`: integration or OAuth client
+    'Catalog Managers',      // stored in `role_name`
+    'mcp/update_product'     // stored in `full_action_name`
+);
+$result = $externalActorScope->run($actor, fn () => $this->doTheWrite());
+```
+
+While the callable runs, `Observer\LogExternalChange` - registered in
+`etc/frontend/events.xml` on the same two commit events - buffers each tracked
+entity that commits. When the callable returns, or throws after committing
+something, the entries are written at once under the actor. Outside a scope
+the frontend observer returns after one property read, so storefront saves are
+never logged and never pay for a session lookup.
+
+Every row carries `source` (`admin` for the panel, otherwise the caller, e.g.
+`mcp`), `connector` and `role_name`. Admin-panel rows get `role_name` from the
+signed-in admin's role, so the log shows which role authorised a change even
+after the role is edited or reassigned. The grid has a column and a filter for
+each.
 
 Login is taken from `backend_auth_user_login_success` rather than
 `admin_user_authenticate_after`, because the latter also fires from

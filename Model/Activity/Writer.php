@@ -23,6 +23,9 @@ class Writer
     public const TABLE = 'magenx_admin_activity';
     public const DETAIL_TABLE = 'magenx_admin_activity_detail';
 
+    /** The admin panel; anything else names the external caller, e.g. "mcp". */
+    public const SOURCE_ADMIN = 'admin';
+
     /**
      * Detail rows per INSERT. Values run to 128 KB apiece
      * (ValueFormatter::MAX_LENGTH), so a wide product save in one statement can
@@ -52,6 +55,9 @@ class Writer
         'request_url' => 2048,
         'ip_address' => 45,
         'user_agent' => 512,
+        'source' => 16,
+        'connector' => 255,
+        'role_name' => 255,
     ];
 
     public function __construct(
@@ -163,6 +169,9 @@ class Writer
             'ip_address' => $context['ip_address'] ?? null,
             'user_agent' => $context['user_agent'] ?? null,
             'message' => $entry['message'] ?? null,
+            'source' => $context['source'] ?? self::SOURCE_ADMIN,
+            'connector' => $context['connector'] ?? null,
+            'role_name' => $context['role_name'] ?? null,
         ];
 
         foreach (self::LENGTHS as $column => $length) {

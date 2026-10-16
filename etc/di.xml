@@ -263,4 +263,16 @@
             </argument>
         </arguments>
     </type>
+
+    <!--
+        Proxied because ContextProvider is also built outside the admin area, by
+        ExternalActorScope, and constructing the admin session there would start
+        one. Inside a scope the user is always passed in, so the proxy is never
+        resolved.
+    -->
+    <type name="Magenx\AdminActivity\Model\Activity\ContextProvider">
+        <arguments>
+            <argument name="authSession" xsi:type="object">Magento\Backend\Model\Auth\Session\Proxy</argument>
+        </arguments>
+    </type>
 </config>

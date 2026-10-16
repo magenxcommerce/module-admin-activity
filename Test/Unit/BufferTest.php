@@ -66,4 +66,20 @@ class BufferTest extends TestCase
         self::assertSame([['action_type' => 'delete']], $this->buffer->getEntries());
         self::assertTrue($this->buffer->isFlushed());
     }
+
+    /**
+     * An ExternalActorScope takes only what was buffered inside it; anything
+     * the request had already collected stays for the request's own flush.
+     */
+    public function testDrainFromTakesOnlyTheLaterEntries(): void
+    {
+        $this->buffer->add(['entity_id' => '1']);
+        $offset = $this->buffer->count();
+        $this->buffer->add(['entity_id' => '2']);
+        $this->buffer->add(['entity_id' => '3']);
+
+        self::assertSame([['entity_id' => '2'], ['entity_id' => '3']], $this->buffer->drainFrom($offset));
+        self::assertSame([['entity_id' => '1']], $this->buffer->getEntries());
+        self::assertSame([], $this->buffer->drainFrom($offset));
+    }
 }

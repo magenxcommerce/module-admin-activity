@@ -75,6 +75,27 @@
                 <label translate="true">Admin</label>
             </settings>
         </column>
+        <column name="source" sortOrder="32">
+            <settings>
+                <filter>text</filter>
+                <dataType>text</dataType>
+                <label translate="true">Source</label>
+            </settings>
+        </column>
+        <column name="connector" sortOrder="34">
+            <settings>
+                <filter>text</filter>
+                <dataType>text</dataType>
+                <label translate="true">Connector</label>
+            </settings>
+        </column>
+        <column name="role_name" sortOrder="36">
+            <settings>
+                <filter>text</filter>
+                <dataType>text</dataType>
+                <label translate="true">Role</label>
+            </settings>
+        </column>
         <column name="action_type" component="Magento_Ui/js/grid/columns/select" sortOrder="40">
             <settings>
                 <options class="Magenx\AdminActivity\Model\Config\Source\ActionType"/>
