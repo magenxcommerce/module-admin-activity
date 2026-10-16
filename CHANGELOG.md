@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/magenxcommerce/module-admin-activity/compare/v1.0.2...v1.1.0) (2026-10-16)
+
+
+### Features
+
+* record changes made by external callers with connector and role ([#7](https://github.com/magenxcommerce/module-admin-activity/issues/7)) ([07c7f55](https://github.com/magenxcommerce/module-admin-activity/commit/07c7f551720abd7b45b1d8ddad194afd219b6436))
+
 ## [1.0.2](https://github.com/magenxcommerce/module-admin-activity/compare/v1.0.1...v1.0.2) (2026-10-10)
 
 
