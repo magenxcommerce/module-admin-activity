@@ -1,0 +1,259 @@
+// /**
+//  * Copyright © MagenX. All rights reserved.
+//  * SPDX-License-Identifier: MIT
+//  */
+
+//
+//  Activity view page
+//  ---------------------------------------------
+//  Literal values only: an undefined variable here would fail the whole
+//  admin stylesheet compile, not just this page.
+
+.magenx-activity-view {
+    code {
+        background: #f5f5f5;
+        border-radius: 2px;
+        font-size: 1.3rem;
+        padding: 0 .4rem;
+    }
+}
+
+.magenx-activity-view__header {
+    background: #ffffff;
+    border: 1px solid #e3e3e3;
+    border-left: 4px solid #eb5202;
+    margin-bottom: 3rem;
+    padding: 2rem 2.5rem;
+
+    .message {
+        margin: 2rem 0 0;
+    }
+}
+
+.magenx-activity-view__headline {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.magenx-activity-view__title {
+    color: #303030;
+    flex-basis: 100%;
+    font-size: 2.4rem;
+    font-weight: 600;
+    margin: .5rem 0 0;
+}
+
+.magenx-activity-view__entity-name {
+    color: #514943;
+    font-weight: 400;
+}
+
+.magenx-activity-view__entity-id {
+    color: #9e9e9e;
+    font-weight: 400;
+}
+
+.magenx-activity-view__meta {
+    border-top: 1px solid #e3e3e3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 4rem;
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 1.5rem 0 0;
+
+    li {
+        color: #303030;
+        font-size: 1.6rem;
+        margin: 0;
+    }
+}
+
+.magenx-activity-view__meta-label {
+    color: #9e9e9e;
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    margin-bottom: .3rem;
+    text-transform: uppercase;
+}
+
+//  Badges, toned like the admin grid's severity labels
+.magenx-activity-badge {
+    border: 1px solid;
+    border-radius: 1em;
+    display: inline-block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.6;
+    padding: 0 1rem;
+    text-transform: uppercase;
+
+    &--positive {
+        background: #d0e5a9;
+        border-color: #5b8116;
+        color: #185b00;
+    }
+
+    &--negative {
+        background: #f9d4d4;
+        border-color: #e22626;
+        color: #e22626;
+    }
+
+    &--info {
+        background: #e5f0f8;
+        border-color: #007bdb;
+        color: #00629e;
+    }
+
+    &--neutral {
+        background: #f1f1f1;
+        border-color: #adadad;
+        color: #514943;
+    }
+}
+
+//  Cards
+.magenx-activity-card {
+    background: #ffffff;
+    border: 1px solid #e3e3e3;
+    margin-bottom: 3rem;
+    padding: 0 2.5rem 2.5rem;
+
+    .admin__page-section-title {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+        margin: 0 -2.5rem 2rem;
+        padding: 1.5rem 2.5rem 1rem;
+    }
+
+    .admin__page-section-item-title {
+        margin-top: 0;
+    }
+}
+
+.magenx-activity-card__columns {
+    column-gap: 4%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
+    margin-bottom: 1rem;
+}
+
+.magenx-activity-card__table {
+    table-layout: fixed;
+    width: 100%;
+
+    th {
+        width: 35%;
+    }
+
+    th,
+    td {
+        vertical-align: top;
+    }
+
+    //  Full-width table under the two columns: 35% of a 48% column, so its
+    //  values line up with theirs. Percentages only - Chrome ignores a calc()
+    //  that mixes % and lengths on a table cell.
+    &--wide th {
+        width: 16.8%;
+    }
+}
+
+.magenx-activity-card__wrap {
+    overflow-wrap: anywhere;
+}
+
+.magenx-activity-card__count {
+    background: #514943;
+    border-radius: 1em;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.8;
+    min-width: 2.2rem;
+    padding: 0 .7rem;
+    text-align: center;
+}
+
+.magenx-activity-card__empty {
+    background: #f8f8f8;
+    border: 1px dashed #cccccc;
+    color: #514943;
+    padding: 3rem;
+    text-align: center;
+}
+
+//  Before / after table
+.magenx-activity-diff {
+    table-layout: fixed;
+    width: 100%;
+
+    .magenx-activity-diff__field {
+        overflow-wrap: anywhere;
+        width: 22%;
+    }
+
+    td {
+        vertical-align: top;
+    }
+
+    pre {
+        font-size: 1.3rem;
+        margin: 0;
+        max-height: 30rem;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+}
+
+//  Specific enough to beat the zebra striping of .admin__table-primary
+.magenx-activity-view .magenx-activity-diff tbody tr td.magenx-activity-diff__value {
+    &--old {
+        background: #fdf0f0;
+        border-left: 3px solid #e22626;
+    }
+
+    &--new {
+        background: #f1f8e9;
+        border-left: 3px solid #79a22e;
+    }
+}
+
+.magenx-activity-diff__empty {
+    color: #9e9e9e;
+    font-style: italic;
+}
+
+@media (max-width: 767px) {
+    .magenx-activity-view__header,
+    .magenx-activity-card {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .magenx-activity-card .admin__page-section-title {
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .magenx-activity-card__columns {
+        grid-template-columns: 1fr;
+    }
+
+    .magenx-activity-card__table--wide th {
+        width: 35%;
+    }
+
+    .magenx-activity-diff .magenx-activity-diff__field {
+        width: 30%;
+    }
+}
