@@ -8,124 +8,201 @@
  */
 $activity = $block->getActivity();
 $changes = $block->getChanges();
+$entityLabel = $block->getEntityLabel();
+$na = __('n/a');
+$actionTone = $block->getActionTone();
+$statusTone = $block->isFailure() ? 'negative' : 'positive';
 ?>
-<style>
-    .magenx-admin-activity-view pre {
-        white-space: pre-wrap;
-        word-break: break-word;
-        margin: 0;
-    }
-</style>
-<div class="magenx-admin-activity-view">
-    <div class="admin__page-section">
-        <div class="admin__page-section-title">
-            <span class="title"><?= $escaper->escapeHtml(__('Activity Details')) ?></span>
-        </div>
-        <table class="admin__table-primary">
-            <tbody>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('Time')) ?></th>
-                    <td>
-                        <?= $escaper->escapeHtml(
-                            $block->formatDate($activity->getData('created_at'), \IntlDateFormatter::MEDIUM, true)
-                        ) ?>
-                    </td>
-                </tr>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('Admin')) ?></th>
-                    <td><?= $escaper->escapeHtml($activity->getData('username') ?: __('n/a')) ?></td>
-                </tr>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('Source')) ?></th>
-                    <td><?= $escaper->escapeHtml($activity->getData('source') ?: 'admin') ?></td>
-                </tr>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('Connector')) ?></th>
-                    <td><?= $escaper->escapeHtml($activity->getData('connector') ?: __('n/a')) ?></td>
-                </tr>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('Role')) ?></th>
-                    <td><?= $escaper->escapeHtml($activity->getData('role_name') ?: __('n/a')) ?></td>
-                </tr>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('Action')) ?></th>
-                    <td><?= $escaper->escapeHtml($block->getActionTypeLabel()) ?></td>
-                </tr>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('Status')) ?></th>
-                    <td><?= $escaper->escapeHtml($activity->getData('status')) ?></td>
-                </tr>
-                <?php if ($block->getEntityLabel() !== null) : ?>
-                    <tr>
-                        <th><?= $escaper->escapeHtml(__('Entity')) ?></th>
-                        <td><?= $escaper->escapeHtml($block->getEntityLabel()) ?></td>
-                    </tr>
-                    <tr>
-                        <th><?= $escaper->escapeHtml(__('Entity Name')) ?></th>
-                        <td><?= $escaper->escapeHtml($activity->getData('entity_name') ?: __('n/a')) ?></td>
-                    </tr>
-                    <tr>
-                        <th><?= $escaper->escapeHtml(__('Entity ID')) ?></th>
-                        <td><?= $escaper->escapeHtml($activity->getData('entity_id') ?: __('n/a')) ?></td>
-                    </tr>
+<div class="magenx-activity-view">
+    <div class="magenx-activity-view__header">
+        <div class="magenx-activity-view__headline">
+            <span class="magenx-activity-badge magenx-activity-badge--<?= $escaper->escapeHtmlAttr($actionTone) ?>">
+                <?= $escaper->escapeHtml($block->getActionTypeLabel()) ?>
+            </span>
+            <span class="magenx-activity-badge magenx-activity-badge--<?= /* @noEscape */ $statusTone ?>">
+                <?= $escaper->escapeHtml($block->getStatusLabel()) ?>
+            </span>
+            <h2 class="magenx-activity-view__title">
+                <?php if ($entityLabel !== null) : ?>
+                    <?= $escaper->escapeHtml($entityLabel) ?>
+                    <?php if ($activity->getData('entity_name')) : ?>
+                        <span class="magenx-activity-view__entity-name">
+                            <?= $escaper->escapeHtml($activity->getData('entity_name')) ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if ($activity->getData('entity_id')) : ?>
+                        <span class="magenx-activity-view__entity-id">
+                            #<?= $escaper->escapeHtml($activity->getData('entity_id')) ?>
+                        </span>
+                    <?php endif; ?>
+                <?php else : ?>
+                    <?= $escaper->escapeHtml($block->getActionTypeLabel()) ?>
                 <?php endif; ?>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('IP Address')) ?></th>
-                    <td><?= $escaper->escapeHtml($activity->getData('ip_address') ?: __('n/a')) ?></td>
-                </tr>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('User Agent')) ?></th>
-                    <td><?= $escaper->escapeHtml($activity->getData('user_agent') ?: __('n/a')) ?></td>
-                </tr>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('Controller Action')) ?></th>
-                    <td><?= $escaper->escapeHtml($activity->getData('full_action_name') ?: __('n/a')) ?></td>
-                </tr>
-                <tr>
-                    <th><?= $escaper->escapeHtml(__('Request URL')) ?></th>
-                    <td><?= $escaper->escapeHtml($activity->getData('request_url') ?: __('n/a')) ?></td>
-                </tr>
-                <?php if ($activity->getData('message')) : ?>
-                    <tr>
-                        <th><?= $escaper->escapeHtml(__('Message')) ?></th>
-                        <td><?= $escaper->escapeHtml($activity->getData('message')) ?></td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="admin__page-section">
-        <div class="admin__page-section-title">
-            <span class="title"><?= $escaper->escapeHtml(__('Changed Fields')) ?></span>
+            </h2>
         </div>
-        <?php if ($changes === []) : ?>
-            <p><?= $escaper->escapeHtml(__('No field-level changes were recorded for this action.')) ?></p>
-        <?php else : ?>
-            <table class="admin__table-primary">
-                <thead>
-                    <tr>
-                        <th><?= $escaper->escapeHtml(__('Field')) ?></th>
-                        <th><?= $escaper->escapeHtml(__('Old Value')) ?></th>
-                        <th><?= $escaper->escapeHtml(__('New Value')) ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($changes as $change) : ?>
-                        <tr>
-                            <td><?= $escaper->escapeHtml($change['field_name']) ?></td>
-                            <td><pre><?= $escaper->escapeHtml($change['old_value'] ?? '') ?></pre></td>
-                            <td><pre><?= $escaper->escapeHtml($change['new_value'] ?? '') ?></pre></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+        <ul class="magenx-activity-view__meta">
+            <li>
+                <span class="magenx-activity-view__meta-label"><?= $escaper->escapeHtml(__('Admin')) ?></span>
+                <?= $escaper->escapeHtml($activity->getData('username') ?: $na) ?>
+            </li>
+            <li>
+                <span class="magenx-activity-view__meta-label"><?= $escaper->escapeHtml(__('Time')) ?></span>
+                <?= $escaper->escapeHtml($block->getFormattedTime() ?: $na) ?>
+            </li>
+            <li>
+                <span class="magenx-activity-view__meta-label"><?= $escaper->escapeHtml(__('Source')) ?></span>
+                <?= $escaper->escapeHtml($activity->getData('source') ?: 'admin') ?>
+            </li>
+            <li>
+                <span class="magenx-activity-view__meta-label"><?= $escaper->escapeHtml(__('Changed Fields')) ?></span>
+                <?= (int) count($changes) ?>
+            </li>
+        </ul>
+        <?php if ($activity->getData('message')) : ?>
+            <div class="message message-<?= $block->isFailure() ? 'error error' : 'notice notice' ?>">
+                <div><?= $escaper->escapeHtml($activity->getData('message')) ?></div>
+            </div>
         <?php endif; ?>
     </div>
 
-    <div class="admin__page-section">
-        <a class="action-secondary" href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>">
-            <?= $escaper->escapeHtml(__('Back to Activity Log')) ?>
-        </a>
-    </div>
+    <section class="admin__page-section magenx-activity-card">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Activity Details')) ?></span>
+        </div>
+        <div class="magenx-activity-card__columns">
+            <div class="magenx-activity-card__column">
+                <div class="admin__page-section-item-title">
+                    <span class="title"><?= $escaper->escapeHtml(__('Action')) ?></span>
+                </div>
+                <table class="admin__table-secondary magenx-activity-card__table">
+                    <tbody>
+                        <tr>
+                            <th><?= $escaper->escapeHtml(__('Time')) ?></th>
+                            <td><?= $escaper->escapeHtml($block->getFormattedTime() ?: $na) ?></td>
+                        </tr>
+                        <tr>
+                            <th><?= $escaper->escapeHtml(__('Action')) ?></th>
+                            <td><?= $escaper->escapeHtml($block->getActionTypeLabel()) ?></td>
+                        </tr>
+                        <tr>
+                            <th><?= $escaper->escapeHtml(__('Status')) ?></th>
+                            <td><?= $escaper->escapeHtml($block->getStatusLabel()) ?></td>
+                        </tr>
+                        <?php if ($entityLabel !== null) : ?>
+                            <tr>
+                                <th><?= $escaper->escapeHtml(__('Entity')) ?></th>
+                                <td><?= $escaper->escapeHtml($entityLabel) ?></td>
+                            </tr>
+                            <tr>
+                                <th><?= $escaper->escapeHtml(__('Entity Name')) ?></th>
+                                <td><?= $escaper->escapeHtml($activity->getData('entity_name') ?: $na) ?></td>
+                            </tr>
+                            <tr>
+                                <th><?= $escaper->escapeHtml(__('Entity ID')) ?></th>
+                                <td><?= $escaper->escapeHtml($activity->getData('entity_id') ?: $na) ?></td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="magenx-activity-card__column">
+                <div class="admin__page-section-item-title">
+                    <span class="title"><?= $escaper->escapeHtml(__('Performed By')) ?></span>
+                </div>
+                <table class="admin__table-secondary magenx-activity-card__table">
+                    <tbody>
+                        <tr>
+                            <th><?= $escaper->escapeHtml(__('Admin')) ?></th>
+                            <td><?= $escaper->escapeHtml($activity->getData('username') ?: $na) ?></td>
+                        </tr>
+                        <tr>
+                            <th><?= $escaper->escapeHtml(__('Source')) ?></th>
+                            <td><?= $escaper->escapeHtml($activity->getData('source') ?: 'admin') ?></td>
+                        </tr>
+                        <tr>
+                            <th><?= $escaper->escapeHtml(__('Connector')) ?></th>
+                            <td><?= $escaper->escapeHtml($activity->getData('connector') ?: $na) ?></td>
+                        </tr>
+                        <tr>
+                            <th><?= $escaper->escapeHtml(__('Role')) ?></th>
+                            <td><?= $escaper->escapeHtml($activity->getData('role_name') ?: $na) ?></td>
+                        </tr>
+                        <tr>
+                            <th><?= $escaper->escapeHtml(__('IP Address')) ?></th>
+                            <td><?= $escaper->escapeHtml($activity->getData('ip_address') ?: $na) ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="admin__page-section-item-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Request')) ?></span>
+        </div>
+        <table class="admin__table-secondary magenx-activity-card__table magenx-activity-card__table--wide">
+            <tbody>
+                <tr>
+                    <th><?= $escaper->escapeHtml(__('Controller Action')) ?></th>
+                    <td><code><?= $escaper->escapeHtml($activity->getData('full_action_name') ?: $na) ?></code></td>
+                </tr>
+                <tr>
+                    <th><?= $escaper->escapeHtml(__('Request URL')) ?></th>
+                    <td class="magenx-activity-card__wrap">
+                        <?= $escaper->escapeHtml($activity->getData('request_url') ?: $na) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?= $escaper->escapeHtml(__('User Agent')) ?></th>
+                    <td class="magenx-activity-card__wrap">
+                        <?= $escaper->escapeHtml($activity->getData('user_agent') ?: $na) ?>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="admin__page-section magenx-activity-card">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Changed Fields')) ?></span>
+            <span class="magenx-activity-card__count"><?= (int) count($changes) ?></span>
+        </div>
+        <?php if ($changes === []) : ?>
+            <div class="magenx-activity-card__empty">
+                <?= $escaper->escapeHtml(__('No field-level changes were recorded for this action.')) ?>
+            </div>
+        <?php else : ?>
+            <div class="admin__table-wrapper">
+                <table class="admin__table-primary magenx-activity-diff">
+                    <thead>
+                        <tr>
+                            <th class="magenx-activity-diff__field"><?= $escaper->escapeHtml(__('Field')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('Old Value')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('New Value')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($changes as $change) : ?>
+                            <tr>
+                                <td class="magenx-activity-diff__field">
+                                    <code><?= $escaper->escapeHtml($change['field_name']) ?></code>
+                                </td>
+                                <?php foreach (['old' => 'old_value', 'new' => 'new_value'] as $side => $key) : ?>
+                                    <?php $value = $change[$key]; ?>
+                                    <td class="magenx-activity-diff__value
+                                               magenx-activity-diff__value--<?= /* @noEscape */ $side ?>">
+                                        <?php if ($value === null || $value === '') : ?>
+                                            <span class="magenx-activity-diff__empty">
+                                                <?= $escaper->escapeHtml(__('(empty)')) ?>
+                                            </span>
+                                        <?php else : ?>
+                                            <pre><?= $escaper->escapeHtml($value) ?></pre>
+                                        <?php endif; ?>
+                                    </td>
+                                <?php endforeach; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </section>
 </div>
