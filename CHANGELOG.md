@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/magenxcommerce/module-admin-activity/compare/v1.1.0...v1.2.0) (2026-10-20)
+
+
+### Features
+
+* redesign the activity view page in the admin style ([#9](https://github.com/magenxcommerce/module-admin-activity/issues/9)) ([bc755de](https://github.com/magenxcommerce/module-admin-activity/commit/bc755de00d13ba6507bd3f7094bcca401b4d718b))
+
 ## [1.1.0](https://github.com/magenxcommerce/module-admin-activity/compare/v1.0.2...v1.1.0) (2026-10-16)
 
 
